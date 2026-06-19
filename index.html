@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#e74c3c">
+<meta name="description" content="App para gestão e registo de treinos semanais">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gestão Treinos">
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23e74c3c' width='192' height='192'/><text x='50%' y='50%' font-size='120' text-anchor='middle' dominant-baseline='middle'>💪</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23e74c3c' width='180' height='180'/><text x='50%' y='50%' font-size='100' text-anchor='middle' dominant-baseline='middle'>💪</text></svg>">
+
+<title>Gestão de Treinos</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 10px;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #e74c3c;
+}
+
+h2 {
+    color: #e74c3c;
+    margin-bottom: 10px;
+}
+
+.section {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.grupo {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 8px 0;
+    background-color: #fafafa;
+}
+
+.contador {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.contador button {
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.contador button:active {
+    opacity: 0.8;
+}
+
+.valor {
+    font-size: 20px;
+    font-weight: bold;
+    width: 30px;
+    text-align: center;
+    background-color: #fff;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+progress {
+    width: 100%;
+    height: 28px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+progress::-webkit-progress-bar {
+    background-color: #eee;
+    border-radius: 4px;
+}
+
+progress::-webkit-progress-value {
+    background-color: #e74c3c;
+    border-radius: 4px;
+}
+
+progress::-moz-progress-bar {
+    background-color: #e74c3c;
+    border-radius: 4px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.falta {
+    color: #c0392b;
+    font-weight: bold;
+}
+
+.ok {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+button {
+    padding: 10px 16px;
+    margin-top: 5px;
+    margin-right: 5px;
+    cursor: pointer;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+button:active {
+    opacity: 0.8;
+}
+
+#percentagem {
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+.info-box {
+    background-color: #fef5f5;
+    border-left: 4px solid #e74c3c;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+        margin: 10px auto;
+    }
+
+    .section {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .contador button {
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h1>💪 Gestão de Treinos</h1>
+
+<div class="section">
+    <h2>Semana Atual</h2>
+    <div id="semana"></div>
+    <br>
+    <button onclick="novaSemana()">📅 Criar Próxima Semana</button>
+</div>
+
+<div class="section">
+    <h2>Registo de Treinos</h2>
+    <div id="grupos"></div>
+</div>
+
+<div class="section">
+    <h2>Cobertura Semanal</h2>
+
+    <progress id="barra" max="100" value="0"></progress>
+
+    <p id="percentagem"></p>
+
+    <h3>Por Treinar</h3>
+    <div id="faltam"></div>
+</div>
+
+<div class="section">
+    <h2>Histórico</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Semana</th>
+                <th>Grupos Treinados</th>
+                <th>Cobertura</th>
+            </tr>
+        </thead>
+        <tbody id="historico"></tbody>
+    </table>
+</div>
+
+<script>
+
+// Registar Service Worker para PWA
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js').catch(err => {
+        console.log('Service Worker não registado:', err);
+    });
+}
+
+const grupos = [
+["Peito","Máquina de empurrar para a frente"],
+["Costas","Puxador, Remada"],
+["Ombros","Máquina de ombros"],
+["Bíceps","Halteres"],
+["Tríceps","Corda ou halteres"],
+["Quadríceps","Prensa, Agachamento"],
+["Isquiotibiais","Flexora"],
+["Glúteos","Afundos, Hip Thrust"],
+["Abdutores","Abdutora"],
+["Core - Abdominais","Crunches, Prancha"],
+["Core - Lombar","Extensões lombares"],
+["Cardio","Corrida, Fiit, Jump"]
+];
+
+let baseDados =
+JSON.parse(localStorage.getItem("treinosV5") || "{}");
+
+let semanaAtual =
+localStorage.getItem("semanaAtualV5") ||
+semanaISO(new Date());
+
+if(!baseDados[semanaAtual]){
+    baseDados[semanaAtual]={};
+}
+
+grupos.forEach(g=>{
+    if(baseDados[semanaAtual][g[0]]===undefined){
+        baseDados[semanaAtual][g[0]]=0;
+    }
+});
+
+function guardar(){
+    localStorage.setItem(
+        "treinosV5",
+        JSON.stringify(baseDados)
+    );
+
+    localStorage.setItem(
+        "semanaAtualV5",
+        semanaAtual
+    );
+
+    renderCobertura();
+    renderHistorico();
+}
+
+function semanaISO(data){
+
+    const d=new Date(Date.UTC(
+        data.getFullYear(),
+        data.getMonth(),
+        data.getDate()
+    ));
+
+    d.setUTCDate(
+        d.getUTCDate() + 4 - (d.getUTCDay()||7)
+    );
+
+    const anoInicio=
+    new Date(Date.UTC(d.getUTCFullYear(),0,1));
+
+    const semana=
+    Math.ceil((((d-anoInicio)/86400000)+1)/7);
+
+    return d.getUTCFullYear()+
+    "-W"+
+    String(semana).padStart(2,"0");
+}
+
+function renderSemana(){
+
+    document.getElementById("semana").innerHTML=
+    `<b>${semanaAtual}</b>`;
+}
+
+function alterar(grupo,delta){
+
+    let valor=
+    baseDados[semanaAtual][grupo];
+
+    valor+=delta;
+
+    if(valor<0) valor=0;
+
+    baseDados[semanaAtual][grupo]=valor;
+
+    guardar();
+    renderGrupos();
+}
+
+function renderGrupos(){
+
+    const div=
+    document.getElementById("grupos");
+
+    div.innerHTML="";
+
+    grupos.forEach(g=>{
+
+        const valor=
+        baseDados[semanaAtual][g[0]] || 0;
+
+        div.innerHTML+=`
+        <div class="grupo">
+
+            <b>${g[0]}</b><br>
+
+            <small>${g[1]}</small>
+
+            <div class="contador">
+
+                <button onclick="alterar('${g[0]}',-1)">−</button>
+
+                <div class="valor">
+                    ${valor}
+                </div>
+
+                <button onclick="alterar('${g[0]}',1)">+</button>
+
+                <span>
+                    sessões
+                </span>
+
+            </div>
+
+        </div>`;
+    });
+}
+
+function renderCobertura(){
+
+    let treinados=0;
+    let faltam=[];
+
+    grupos.forEach(g=>{
+
+        const valor=
+        baseDados[semanaAtual][g[0]] || 0;
+
+        if(valor>0){
+            treinados++;
+        }else{
+            faltam.push(g[0]);
+        }
+    });
+
+    const percentagem=
+    Math.round(
+        (treinados/grupos.length)*100
+    );
+
+    document.getElementById("barra").value=
+    percentagem;
+
+    document.getElementById("percentagem").innerHTML=
+    `<b>${treinados}/${grupos.length}</b>
+    grupos treinados
+    (${percentagem}%)`;
+
+    if(faltam.length===0){
+
+        document.getElementById("faltam").innerHTML=
+        `<div class="ok">
+        ✅ Cobertura completa! Parabéns!
+        </div>`;
+
+    }else{
+
+        document.getElementById("faltam").innerHTML=
+        faltam.map(f=>
+            `<div class="falta">❌ ${f}</div>`
+        ).join("");
+    }
+}
+
+function renderHistorico(){
+
+    const body=
+    document.getElementById("historico");
+
+    body.innerHTML="";
+
+    Object.keys(baseDados)
+    .sort()
+    .reverse()
+    .forEach(semana=>{
+
+        const semanaDados=
+        baseDados[semana];
+
+        let total=0;
+
+        grupos.forEach(g=>{
+            if((semanaDados[g[0]]||0)>0){
+                total++;
+            }
+        });
+
+        const perc=
+        Math.round(
+        (total/grupos.length)*100
+        );
+
+        body.innerHTML+=`
+        <tr>
+            <td>${semana}</td>
+            <td>${total}/${grupos.length}</td>
+            <td>${perc}%</td>
+        </tr>`;
+    });
+}
+
+function novaSemana(){
+
+    const hoje=new Date();
+
+    hoje.setDate(
+        hoje.getDate()+7
+    );
+
+    semanaAtual=
+    semanaISO(hoje);
+
+    if(!baseDados[semanaAtual]){
+        baseDados[semanaAtual]={};
+
+        grupos.forEach(g=>{
+            baseDados[semanaAtual][g[0]]=0;
+        });
+    }
+
+    guardar();
+
+    renderSemana();
+    renderGrupos();
+    renderCobertura();
+}
+
+renderSemana();
+renderGrupos();
+renderCobertura();
+renderHistorico();
+
+</script>
+
+</body>
+</html>
